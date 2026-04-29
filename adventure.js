@@ -227,7 +227,39 @@ class AdventureScene extends Phaser.Scene {
      *         .on('pointerdown', () => this.gotoScene('next_room'));
      * }
      */
-    onEnter() {
+   onEnter() {
         console.warn('This AdventureScene did not implement onEnter():', this.constructor.name);
     }
-}
+
+    /**
+     * ENGINE EXTENSION 1: shake(obj)
+     * Plays a quick horizontal shake on any game object.
+     * Use to signal a blocked action or draw attention.
+     * @param {Phaser.GameObjects.GameObject} obj
+     */
+    shake(obj) {
+        if (!obj) return;
+        this.tweens.add({
+            targets: obj,
+            x: '+=' + this.s * 0.4,
+            repeat: 3,
+            yoyo: true,
+            ease: 'Sine.inOut',
+            duration: 80
+        });
+    }
+
+    /**
+     * ENGINE EXTENSION 2: describe(obj, message)
+     * Attaches a pointerover message to an object in one line.
+     * Chainable — returns the object.
+     * @param {Phaser.GameObjects.GameObject} obj
+     * @param {string} message
+     */
+    describe(obj, message) {
+        obj.setInteractive();
+        obj.on('pointerover', () => this.showMessage(message));
+        return obj;
+    }
+
+} 

@@ -1,4 +1,4 @@
-class Demo1 extends AdventureScene {
+/* class Demo1 extends AdventureScene {
     constructor() {
         super("demo1", "First Room");
     }
@@ -128,4 +128,495 @@ const game = new Phaser.Game({
     scene: [Intro, Demo1, Demo2, Outro],
     title: "Adventure Game",
 });
+*/
+// ============================================================
+// GLOBAL STATE
+// Use a plain object to share state between scenes
+// ============================================================
+const GameState = {
+    birdFreed: false,    // Did the player free the nightingale?
+    windowOpen: false,   // Is the window in the Past open?
+    sawScore: false,     // Did the player see the musical score?
+};
 
+// ============================================================
+// INTRO SCENE  (plain Phaser.Scene — no AdventureScene needed)
+// ============================================================
+class Intro extends Phaser.Scene {
+    constructor() {
+        super('intro');
+    }
+
+    create() {
+        // Reset state every new run
+        GameState.birdFreed = false;
+        GameState.windowOpen = false;
+        GameState.sawScore = false;
+
+        const cx = this.cameras.main.width / 2;
+        const cy = this.cameras.main.height / 2;
+
+        this.add.text(cx, cy - 160,
+            "You haven't opened it in years.",
+            { fontSize: '36px', color: '#cccccc' }
+        ).setOrigin(0.5);
+
+        this.add.text(cx, cy - 100,
+            "You don't remember what you put inside.",
+            { fontSize: '28px', color: '#aaaaaa' }
+        ).setOrigin(0.5);
+
+        const jar = this.add.text(cx, cy + 20, '🍬', { fontSize: '120px' })
+            .setOrigin(0.5)
+            .setInteractive();
+
+        this.add.text(cx, cy + 140, 'A candy jar.  Click to open.',
+            { fontSize: '24px', color: '#888888' }
+        ).setOrigin(0.5);
+
+        jar.on('pointerover', () => jar.setAlpha(0.7));
+        jar.on('pointerout',  () => jar.setAlpha(1));
+        jar.on('pointerdown', () => {
+            this.cameras.main.fade(1000, 0, 0, 0);
+            this.time.delayedCall(1000, () => this.scene.start('candyjar'));
+        });
+    }
+}
+
+// ============================================================
+// SCENE 1 — CandyJar  (AdventureScene)
+// ============================================================
+class CandyJar extends AdventureScene {
+    constructor() {
+        super('candyjar', 'Inside the Candy Jar');
+    }
+
+    onEnter() {
+        // ---- Key ---- (centered in play area = 0–75%, so cx = 0.375)
+        let key = this.add.text(this.w * 0.38, this.h * 0.35, '🔑 a small key')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('An old brass key. Still shiny.'))
+            .on('pointerdown', () => {
+                if (!this.hasItem('key')) {
+                    this.gainItem('key');
+                    this.showMessage('You pick up the key.');
+                    this.tweens.add({
+                        targets: key,
+                        y: `-=${this.s * 2}`,
+                        alpha: 0,
+                        duration: 500,
+                        onComplete: () => key.destroy()
+                    });
+                }
+            });
+
+        // ---- Door 1 — Past ---- (left quarter of play area)
+        this.add.text(this.w * 0.12, this.h * 0.5, '🚪 Door 1\n(The Past)')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('Something waits behind this door.'))
+            .on('pointerdown', () => this.gotoScene('past'));
+
+        // ---- Door 2 — Present ---- (right of play area, max 0.55 to stay clear)
+        this.add.text(this.w * 0.55, this.h * 0.5, '🚪 Door 2\n(The Present)')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('Time has changed what lies beyond.'))
+            .on('pointerdown', () => this.gotoScene('present'));
+    }
+}
+
+// ============================================================
+// SCENE 2 — Past  (AdventureScene)
+// ============================================================
+class Past extends AdventureScene {
+    constructor() {
+        super('past', 'The Past');
+    }
+
+    onEnter() {
+        // ---- Window ---- (was 0.7, moved to 0.55)
+        let windowText = GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)';
+        let windowObj = this.add.text(this.w * 0.55, this.h * 0.25, windowText)
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.showMessage(GameState.windowOpen
+                    ? 'A cool breeze drifts in.'
+                    : 'It\'s shut tight. The glass is fogged.');
+            })
+            .on('pointerdown', () => {
+                GameState.windowOpen = !GameState.windowOpen;
+                windowObj.setText(GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)');
+                this.showMessage(GameState.windowOpen ? 'You open the window.' : 'You close the window.');
+                this.shake(windowObj);
+            });
+
+        // ---- Birdcage with Nightingale ---- (was 0.25, keep as is)
+        let cageLabel = GameState.birdFreed ? '🪺 empty birdcage' : '🪺 birdcage';
+        let cage = this.add.text(this.w * 0.18, this.h * 0.45, cageLabel)
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                if (GameState.birdFreed) {
+                    this.showMessage('The cage door swings open. It\'s empty now.');
+                } else {
+                    this.showMessage('A nightingale sits inside, singing softly.');
+                }
+            })
+            .on('pointerdown', () => {
+                if (GameState.birdFreed) {
+                    this.showMessage('Already empty.');
+                    return;
+                }
+                if (this.hasItem('key')) {
+                    if (!GameState.windowOpen) {
+                        this.showMessage('You should open the window first, so the bird can fly free.');
+                        return;
+                    }
+                    this.loseItem('key');
+                    GameState.birdFreed = true;
+                    cage.setText('🪺 empty birdcage');
+                    this.showMessage('You unlock the cage. The nightingale sings one last note — then flies out the window.');
+                    this.tweens.add({
+                        targets: cage,
+                        alpha: 0.5,
+                        duration: 800,
+                        yoyo: true,
+                        repeat: 1
+                    });
+                } else {
+                    this.showMessage('It\'s locked. You need a key.');
+                }
+            });
+
+        // ---- Back button ----
+        this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar')
+            .setFontSize(this.s * 1.5)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('Return to the candy jar.'))
+            .on('pointerdown', () => this.gotoScene('candyjar'));
+    }
+}
+
+// ============================================================
+// SCENE 3 — Present  (AdventureScene)
+// ============================================================
+class Present extends AdventureScene {
+    constructor() {
+        super('present', 'The Present');
+    }
+
+    onEnter() {
+        // ---- Birdcage (state-dependent) ---- (was 0.2, keep)
+        let cageText = GameState.birdFreed
+            ? '🪺 open birdcage'
+            : '💀 birdcage (with bones)';
+
+        this.add.text(this.w * 0.12, this.h * 0.35, cageText)
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.showMessage(GameState.birdFreed
+                    ? 'The cage door is still open. The bird is long gone.'
+                    : 'Small bones rattle inside. The nightingale never left.');
+            })
+            .on('pointerdown', () => {
+                this.shake(this.children.list.find(c => c.text && c.text.includes('cage')));
+            });
+
+        // ---- Chalk drawing ---- (was 0.5, keep — well within bounds)
+        let chalkText = GameState.windowOpen
+            ? '🎵 (blurry musical score)'
+            : '🎵 musical score in chalk';
+
+        let chalk = this.add.text(this.w * 0.38, this.h * 0.6, chalkText)
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                if (GameState.windowOpen) {
+                    this.showMessage('Rain came through the open window. The notes are smeared — almost unreadable.');
+                } else {
+                    this.showMessage('A musical score drawn carefully in chalk. You memorize the notes.');
+                    GameState.sawScore = true;
+                }
+            })
+            .on('pointerdown', () => {
+                if (GameState.windowOpen) {
+                    this.showMessage('You try to make out the notes, but they\'re too blurry.');
+                } else {
+                    GameState.sawScore = true;
+                    this.showMessage('You study the score carefully. The melody stays with you.');
+                    this.tweens.add({
+                        targets: chalk,
+                        scaleX: 1.1,
+                        scaleY: 1.1,
+                        duration: 300,
+                        yoyo: true
+                    });
+                }
+            });
+
+        // ---- Window (read-only reflection) ---- (was 0.72, moved to 0.55)
+        this.add.text(this.w * 0.55, this.h * 0.25,
+            GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.showMessage(GameState.windowOpen
+                    ? 'Rain has gotten in. The chalk drawing is ruined.'
+                    : 'Closed. The chalk drawing is preserved.');
+            });
+
+        // ---- Door 3 — Future ---- (was 0.7, moved to 0.55)
+        this.add.text(this.w * 0.55, this.h * 0.65, '🚪 Door 3\n(The Future)')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('Where does this lead?'))
+            .on('pointerdown', () => this.gotoScene('future'));
+
+        // ---- Back button ----
+        this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar')
+            .setFontSize(this.s * 1.5)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('Return to the candy jar.'))
+            .on('pointerdown', () => this.gotoScene('candyjar'));
+    }
+}
+
+// ============================================================
+// SCENE 4 — Future  (AdventureScene)
+// ============================================================
+class Future extends AdventureScene {
+    constructor() {
+        super('future', 'The Future');
+    }
+
+    onEnter() {
+        // ---- Nightingale brings silver key (only if freed) ----
+        if (GameState.birdFreed) {
+            let silverKey = this.add.text(this.w * 0.18, this.h * 0.3, '🗝️ silver key\n(left by the nightingale)')
+                .setFontSize(this.s * 2)
+                .setInteractive()
+                .on('pointerover', () => this.showMessage('The nightingale remembered you.'))
+                .on('pointerdown', () => {
+                    if (!this.hasItem('silverkey')) {
+                        this.gainItem('silverkey');
+                        this.showMessage('You pick up the silver key.');
+                        this.tweens.add({
+                            targets: silverKey,
+                            y: `-=${this.s * 2}`,
+                            alpha: 0,
+                            duration: 500,
+                            onComplete: () => silverKey.destroy()
+                        });
+                    }
+                });
+        } else {
+            this.add.text(this.w * 0.18, this.h * 0.3, '(no one came)')
+                .setFontSize(this.s * 1.5)
+                .setAlpha(0.4);
+        }
+
+        // ---- Locked box ---- (was 0.55, keep)
+        let box = this.add.text(this.w * 0.45, this.h * 0.45, '📦 locked box')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                this.showMessage(this.hasItem('silverkey')
+                    ? 'You have the silver key. You could open this.'
+                    : 'It\'s locked with a silver lock.');
+            })
+            .on('pointerdown', () => {
+                if (this.hasItem('silverkey')) {
+                    this.loseItem('silverkey');
+                    box.setText('📦 open box');
+                    this.showMessage('The box opens. Inside: a flute.');
+                    this.tweens.add({
+                        targets: box,
+                        scaleX: 1.15,
+                        scaleY: 1.15,
+                        duration: 400,
+                        yoyo: true
+                    });
+
+                    // Reveal flute
+                    this.time.delayedCall(600, () => {
+                        this.add.text(this.w * 0.45, this.h * 0.58, '🎶 flute')
+                            .setFontSize(this.s * 2)
+                            .setInteractive()
+                            .on('pointerover', () => {
+                                this.showMessage(this.hasItem('flute')
+                                    ? 'You\'re already holding it.'
+                                    : 'A slender silver flute.');
+                            })
+                            .on('pointerdown', () => {
+                                if (!this.hasItem('flute')) {
+                                    this.gainItem('flute');
+                                    this.showMessage('You pick up the flute.');
+                                }
+                            });
+                    });
+                } else {
+                    this.showMessage('It won\'t open. You need a silver key.');
+                    this.shake(box);
+                }
+            });
+
+        // ---- Door 4 ---- (was 0.72, moved to 0.55)
+        let door4 = this.add.text(this.w * 0.55, this.h * 0.72, '🚪 Door 4\n(The Way Out)')
+            .setFontSize(this.s * 2)
+            .setInteractive()
+            .on('pointerover', () => {
+                if (this.hasItem('flute') && GameState.sawScore) {
+                    this.showMessage('You could play the melody now. Or just leave.');
+                } else {
+                    this.showMessage('A door leading out. Something feels unfinished.');
+                }
+            })
+            .on('pointerdown', () => {
+                if (this.hasItem('flute') && GameState.sawScore) {
+                    this.showMessage('Play the melody? (click again to play, or go through the door directly below)');
+                    door4.destroy();
+                    this.add.text(this.w * 0.38, this.h * 0.78, '🎵 Play the melody')
+                        .setFontSize(this.s * 1.8)
+                        .setInteractive()
+                        .on('pointerdown', () => this.gotoScene('ending1'));
+
+                    this.add.text(this.w * 0.38, this.h * 0.88, '🚶 Just leave')
+                        .setFontSize(this.s * 1.8)
+                        .setInteractive()
+                        .on('pointerdown', () => this.gotoScene('ending2'));
+                } else {
+                    this.gotoScene('ending2');
+                }
+            });
+
+        // ---- Back button ----
+        this.add.text(this.w * 0.05, this.h * 0.85, '← Back')
+            .setFontSize(this.s * 1.5)
+            .setInteractive()
+            .on('pointerover', () => this.showMessage('Go back to the present.'))
+            .on('pointerdown', () => this.gotoScene('present'));
+    }
+}
+
+// ============================================================
+// ENDING 1  (plain Phaser.Scene)
+// ============================================================
+class Ending1 extends Phaser.Scene {
+    constructor() {
+        super('ending1');
+    }
+
+    create() {
+        const cx = this.cameras.main.width / 2;
+
+        this.cameras.main.setBackgroundColor('#0a0a1a');
+
+        this.add.text(cx, 80, '🎵 Ending 1: The Nightingale\'s Song', {
+            fontSize: '38px', color: '#e8d5a3'
+        }).setOrigin(0.5);
+
+        const poem = [
+            "Let us go to the shore, where the waves will kiss our feet,",
+            "where the stars with mysterious sorrow shine down on us in the night.",
+            "",
+            "There the fragrant breeze will loosen your hair and play;",
+            "come away — the poplar sways, mournful, and calls us away.",
+            "",
+            "All will be forgotten, when the moon gleams in the dark blue above,",
+            "all — as the nightingale sings its hymn to nature, and to God.",
+            "",
+            "— Aleksey Pleshcheyev, 1845"
+        ];
+
+        poem.forEach((line, i) => {
+            this.add.text(cx, 180 + i * 52, line, {
+                fontSize: '22px',
+                color: line.startsWith('—') ? '#888888' : '#cccccc',
+                fontStyle: line.startsWith('—') ? 'italic' : 'normal'
+            }).setOrigin(0.5).setAlpha(0);
+
+            this.tweens.add({
+                targets: this.children.list[this.children.list.length - 1],
+                alpha: 1,
+                duration: 800,
+                delay: i * 300
+            });
+        });
+
+        this.add.text(cx, 780, 'Click anywhere to play again.', {
+            fontSize: '20px', color: '#555555'
+        }).setOrigin(0.5);
+
+        this.input.on('pointerdown', () => this.scene.start('intro'));
+    }
+}
+
+// ============================================================
+// ENDING 2  (plain Phaser.Scene)
+// ============================================================
+class Ending2 extends Phaser.Scene {
+    constructor() {
+        super('ending2');
+    }
+
+    create() {
+        const cx = this.cameras.main.width / 2;
+
+        this.cameras.main.setBackgroundColor('#0d0d0d');
+
+        this.add.text(cx, 120, 'Ending 2: The Empty Jar', {
+            fontSize: '38px', color: '#888888'
+        }).setOrigin(0.5);
+
+        const lines = [
+            "You look at the candy jar.",
+            "You remember putting something precious inside, once.",
+            "A plastic bracelet that caught the light, maybe. Or something else.",
+            "You can't quite remember.",
+            "",
+            "You open it.",
+            "",
+            "Nothing.",
+            "Just the flat brass bottom, staring back at you."
+        ];
+
+        lines.forEach((line, i) => {
+            this.add.text(cx, 240 + i * 58, line, {
+                fontSize: line === 'Nothing.' ? '32px' : '24px',
+                color: line === 'Nothing.' ? '#ffffff' : '#888888',
+            }).setOrigin(0.5).setAlpha(0);
+
+            this.tweens.add({
+                targets: this.children.list[this.children.list.length - 1],
+                alpha: 1,
+                duration: 1000,
+                delay: i * 400
+            });
+        });
+
+        this.add.text(cx, 820, 'Click anywhere to play again.', {
+            fontSize: '20px', color: '#333333'
+        }).setOrigin(0.5);
+
+        this.input.on('pointerdown', () => this.scene.start('intro'));
+    }
+}
+
+// ============================================================
+// GAME CONFIG
+// ============================================================
+const game = new Phaser.Game({
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 1920,
+        height: 1080
+    },
+    scene: [Intro, CandyJar, Past, Present, Future, Ending1, Ending2],
+    title: 'The Candy Jar',
+    backgroundColor: '#1a1a1a'
+});
