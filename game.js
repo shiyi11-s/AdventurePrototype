@@ -280,6 +280,41 @@ class Past extends AdventureScene {
                         yoyo: true,
                         repeat: 1
                     });
+
+                    // ---- Bird flies out of cage, through the window ----
+                    // Window is at (this.w * 0.55, this.h * 0.25)
+                    const bird = this.add.text(cage.x + this.s * 2, cage.y, '🐦')
+                        .setFontSize(this.s * 3)
+                        .setOrigin(0.5);
+                    // Step 1: lift out of the cage
+                    this.tweens.add({
+                        targets: bird,
+                        y: cage.y - this.s * 4,
+                        duration: 500,
+                        ease: 'Sine.out',
+                        onComplete: () => {
+                            // Step 2: fly across to the window
+                            this.tweens.add({
+                                targets: bird,
+                                x: this.w * 0.58,
+                                y: this.h * 0.27,
+                                duration: 800,
+                                ease: 'Sine.inOut',
+                                onComplete: () => {
+                                    // Step 3: dart out through the window and fade
+                                    this.tweens.add({
+                                        targets: bird,
+                                        x: this.w + this.s * 5,
+                                        y: this.h * 0.05,
+                                        alpha: 0,
+                                        duration: 700,
+                                        ease: 'Sine.in',
+                                        onComplete: () => bird.destroy()
+                                    });
+                                }
+                            });
+                        }
+                    });
                 } else {
                     this.showMessage('It\'s locked. You need a key.');
                 }
@@ -380,10 +415,13 @@ class Future extends AdventureScene {
     onEnter() {
         // ---- Nightingale brings silver key (only if freed) ----
         if (GameState.birdFreed) {
+            // Key is hidden at first — the bird drops it.
             let silverKey = this.add.text(this.w * 0.18, this.h * 0.3, '🗝️ silver key\n(left by the nightingale)')
-                .setFontSize(this.s * 2);
+                .setFontSize(this.s * 2)
+                .setAlpha(0);
             this.describe(silverKey, 'The nightingale remembered you.')
                 .on('pointerdown', () => {
+                    if (silverKey.alpha < 1) return; // not delivered yet
                     if (!this.hasItem('silverkey')) {
                         this.gainItem('silverkey');
                         this.showMessage('You pick up the silver key.');
@@ -396,6 +434,42 @@ class Future extends AdventureScene {
                         });
                     }
                 });
+
+            // ---- Bird flies in carrying the key, drops it, flies away ----
+            const bird = this.add.text(this.w + this.s * 4, this.h * 0.05, '🐦🗝️')
+                .setFontSize(this.s * 3)
+                .setOrigin(0.5);
+            // Step 1: bird flies in to a hover point just above the drop spot
+            this.tweens.add({
+                targets: bird,
+                x: this.w * 0.18,
+                y: this.h * 0.3 - this.s * 3,
+                duration: 1300,
+                ease: 'Sine.inOut',
+                onComplete: () => {
+                    // Step 2: drop the key — bird becomes empty-beaked, key falls into place
+                    bird.setText('🐦');
+                    this.tweens.add({
+                        targets: silverKey,
+                        alpha: { from: 0, to: 1 },
+                        y: { from: this.h * 0.3 - this.s * 2, to: this.h * 0.3 },
+                        duration: 500,
+                        ease: 'Bounce.out'
+                    });
+                    // Step 3: little hover, then bird flies off out the top-left
+                    this.time.delayedCall(550, () => {
+                        this.tweens.add({
+                            targets: bird,
+                            x: -this.s * 5,
+                            y: -this.s * 4,
+                            alpha: 0,
+                            duration: 1100,
+                            ease: 'Sine.in',
+                            onComplete: () => bird.destroy()
+                        });
+                    });
+                }
+            });
         } else {
             this.add.text(this.w * 0.18, this.h * 0.3, '(no one came)')
                 .setFontSize(this.s * 1.5)
