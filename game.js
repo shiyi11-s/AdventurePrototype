@@ -192,11 +192,9 @@ class CandyJar extends AdventureScene {
     }
 
     onEnter() {
-        // ---- Key ---- (centered in play area = 0–75%, so cx = 0.375)
         let key = this.add.text(this.w * 0.38, this.h * 0.35, '🔑 a small key')
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('An old brass key. Still shiny.'))
+            .setFontSize(this.s * 2);
+        this.describe(key, 'An old brass key. Still shiny.')
             .on('pointerdown', () => {
                 if (!this.hasItem('key')) {
                     this.gainItem('key');
@@ -212,18 +210,16 @@ class CandyJar extends AdventureScene {
             });
 
         // ---- Door 1 — Past ---- (left quarter of play area)
-        this.add.text(this.w * 0.12, this.h * 0.5, '🚪 Door 1\n(The Past)')
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('Something waits behind this door.'))
-            .on('pointerdown', () => this.gotoScene('past'));
+        this.describe(
+            this.add.text(this.w * 0.12, this.h * 0.5, '🚪 Door 1\n(The Past)').setFontSize(this.s * 2),
+            'Something waits behind this door.'
+        ).on('pointerdown', () => this.gotoScene('past'));
 
         // ---- Door 2 — Present ---- (right of play area, max 0.55 to stay clear)
-        this.add.text(this.w * 0.55, this.h * 0.5, '🚪 Door 2\n(The Present)')
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('Time has changed what lies beyond.'))
-            .on('pointerdown', () => this.gotoScene('present'));
+        this.describe(
+            this.add.text(this.w * 0.55, this.h * 0.5, '🚪 Door 2\n(The Present)').setFontSize(this.s * 2),
+            'Time has changed what lies beyond.'
+        ).on('pointerdown', () => this.gotoScene('present'));
     }
 }
 
@@ -236,7 +232,6 @@ class Past extends AdventureScene {
     }
 
     onEnter() {
-        // ---- Window ---- (was 0.7, moved to 0.55)
         let windowText = GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)';
         let windowObj = this.add.text(this.w * 0.55, this.h * 0.25, windowText)
             .setFontSize(this.s * 2)
@@ -253,7 +248,6 @@ class Past extends AdventureScene {
                 this.shake(windowObj);
             });
 
-        // ---- Birdcage with Nightingale ---- (was 0.25, keep as is)
         let cageLabel = GameState.birdFreed ? '🪺 empty birdcage' : '🪺 birdcage';
         let cage = this.add.text(this.w * 0.18, this.h * 0.45, cageLabel)
             .setFontSize(this.s * 2)
@@ -292,11 +286,10 @@ class Past extends AdventureScene {
             });
 
         // ---- Back button ----
-        this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar')
-            .setFontSize(this.s * 1.5)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('Return to the candy jar.'))
-            .on('pointerdown', () => this.gotoScene('candyjar'));
+        this.describe(
+            this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar').setFontSize(this.s * 1.5),
+            'Return to the candy jar.'
+        ).on('pointerdown', () => this.gotoScene('candyjar'));
     }
 }
 
@@ -309,7 +302,6 @@ class Present extends AdventureScene {
     }
 
     onEnter() {
-        // ---- Birdcage (state-dependent) ---- (was 0.2, keep)
         let cageText = GameState.birdFreed
             ? '🪺 open birdcage'
             : '💀 birdcage (with bones)';
@@ -326,7 +318,6 @@ class Present extends AdventureScene {
                 this.shake(this.children.list.find(c => c.text && c.text.includes('cage')));
             });
 
-        // ---- Chalk drawing ---- (was 0.5, keep — well within bounds)
         let chalkText = GameState.windowOpen
             ? '🎵 (blurry musical score)'
             : '🎵 musical score in chalk';
@@ -357,8 +348,6 @@ class Present extends AdventureScene {
                     });
                 }
             });
-
-        // ---- Window (read-only reflection) ---- (was 0.72, moved to 0.55)
         this.add.text(this.w * 0.55, this.h * 0.25,
             GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)')
             .setFontSize(this.s * 2)
@@ -368,20 +357,15 @@ class Present extends AdventureScene {
                     ? 'Rain has gotten in. The chalk drawing is ruined.'
                     : 'Closed. The chalk drawing is preserved.');
             });
+        this.describe(
+            this.add.text(this.w * 0.55, this.h * 0.65, '🚪 Door 3\n(The Future)').setFontSize(this.s * 2),
+            'Where does this lead?'
+        ).on('pointerdown', () => this.gotoScene('future'));
 
-        // ---- Door 3 — Future ---- (was 0.7, moved to 0.55)
-        this.add.text(this.w * 0.55, this.h * 0.65, '🚪 Door 3\n(The Future)')
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('Where does this lead?'))
-            .on('pointerdown', () => this.gotoScene('future'));
-
-        // ---- Back button ----
-        this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar')
-            .setFontSize(this.s * 1.5)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('Return to the candy jar.'))
-            .on('pointerdown', () => this.gotoScene('candyjar'));
+        this.describe(
+            this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar').setFontSize(this.s * 1.5),
+            'Return to the candy jar.'
+        ).on('pointerdown', () => this.gotoScene('candyjar'));
     }
 }
 
@@ -397,9 +381,8 @@ class Future extends AdventureScene {
         // ---- Nightingale brings silver key (only if freed) ----
         if (GameState.birdFreed) {
             let silverKey = this.add.text(this.w * 0.18, this.h * 0.3, '🗝️ silver key\n(left by the nightingale)')
-                .setFontSize(this.s * 2)
-                .setInteractive()
-                .on('pointerover', () => this.showMessage('The nightingale remembered you.'))
+                .setFontSize(this.s * 2);
+            this.describe(silverKey, 'The nightingale remembered you.')
                 .on('pointerdown', () => {
                     if (!this.hasItem('silverkey')) {
                         this.gainItem('silverkey');
@@ -418,8 +401,6 @@ class Future extends AdventureScene {
                 .setFontSize(this.s * 1.5)
                 .setAlpha(0.4);
         }
-
-        // ---- Locked box ---- (was 0.55, keep)
         let box = this.add.text(this.w * 0.45, this.h * 0.45, '📦 locked box')
             .setFontSize(this.s * 2)
             .setInteractive()
@@ -463,8 +444,6 @@ class Future extends AdventureScene {
                     this.shake(box);
                 }
             });
-
-        // ---- Door 4 ---- (was 0.72, moved to 0.55)
         let door4 = this.add.text(this.w * 0.55, this.h * 0.72, '🚪 Door 4\n(The Way Out)')
             .setFontSize(this.s * 2)
             .setInteractive()
@@ -494,11 +473,10 @@ class Future extends AdventureScene {
             });
 
         // ---- Back button ----
-        this.add.text(this.w * 0.05, this.h * 0.85, '← Back')
-            .setFontSize(this.s * 1.5)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage('Go back to the present.'))
-            .on('pointerdown', () => this.gotoScene('present'));
+        this.describe(
+            this.add.text(this.w * 0.05, this.h * 0.85, '← Back').setFontSize(this.s * 1.5),
+            'Go back to the present.'
+        ).on('pointerdown', () => this.gotoScene('present'));
     }
 }
 
