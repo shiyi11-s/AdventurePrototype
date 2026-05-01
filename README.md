@@ -15,8 +15,11 @@ Experience requirements:
 - **Some objects are themselves animated**: the birdcage pulses when the bird is freed. picked-up items float up and disappear.
 
 Asset sources:
-- (For each image/audio/video asset used, describe how it was created. What tool did you use to create it? Was it based on another work? If so, how did you change it, and where can we learn more about the original work for comparison? Use [Markdown link syntax](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#links).)
-For the stage 2 still just emojis
+- **Visuals**: All in-game visuals are Unicode emoji rendered as Phaser text objects (e.g. 🍬 🔑 🚪 🪟 🪺 🐦 🗝️ 📦 🎶 🎵 💀). No bitmap or vector image files were authored or imported for this stage; the actual glyph rendering is handled by whatever emoji font the player's browser/OS provides (e.g. Segoe UI Emoji on Windows, Apple Color Emoji on macOS, Noto Color Emoji on Linux). The Unicode code points themselves are part of the Unicode Standard ([emoji list](https://unicode.org/emoji/charts/full-emoji-list.html)).
+- **Audio**: None used yet.
+- **Text — Ending 1 poem**: An English translation of "Тихо вечер догорает" by Aleksey Pleshcheyev (Алексей Плещеев), 1845. The original Russian poem is in the public domain. The translation in `game.js` was paraphrased / abridged by me from the public Russian source for length and tone, and is credited in-game with the line `— Aleksey Pleshcheyev, 1845`. Reference for the original Russian text: [ru.wikisource.org — Тихо вечер догорает](https://ru.wikisource.org/wiki/%D0%A2%D0%B8%D1%85%D0%BE_%D0%B2%D0%B5%D1%87%D0%B5%D1%80_%D0%B4%D0%BE%D0%B3%D0%BE%D1%80%D0%B0%D0%B5%D1%82_(%D0%9F%D0%BB%D0%B5%D1%89%D0%B5%D0%B5%D0%B2)).
+- **Text — Ending 2**: Original prose, written by me.
+- **Music reference (concept doc only)**: The design notes mention Tchaikovsky's *The Seasons*, "June: Barcarolle" as inspiration for Ending 1's mood. The piece itself is in the public domain but is **not** played in the game at this stage.
 
 Code sources:
 - `adventure.js` and `index.html` were created for this project [Adam Smith](https://github.com/rndmcnlly) and edited by me.
