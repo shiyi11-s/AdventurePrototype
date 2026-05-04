@@ -186,19 +186,14 @@ class Past extends AdventureScene {
             });
 
         // ---- Birdcage (with nightingale visible until freed) ----
-        // Closed-cage overlay drawn on top of the bird so it looks caged.
-        // Created BEFORE the bird-cage so the closure inside cage.pointerdown can fade it.
+        // Forward-declared so the closure inside cage.pointerdown can fade it later.
         let cageOverlay = null;
-        if (!GameState.birdFreed) {
-            cageOverlay = this.add.image(this.w * 0.22, this.h * 0.55, 'cage-closed')
-                .setOrigin(0.5)
-                .setScale(0.22);
-        }
 
+        // Bottom layer: bird-in-cage (or open cage after the bird leaves).
         const cageKeyInitial = GameState.birdFreed ? 'cage-open' : 'cage-with-bird';
         let cage = this.add.image(this.w * 0.22, this.h * 0.55, cageKeyInitial)
             .setOrigin(0.5)
-            .setScale(GameState.birdFreed ? 0.16 : 0.22)
+            .setScale(GameState.birdFreed ? 0.32 : 0.44)
             .setInteractive()
             .on('pointerover', () => {
                 if (GameState.birdFreed) {
@@ -232,7 +227,7 @@ class Past extends AdventureScene {
 
                     // Swap to the open-cage texture (and its scale)
                     cage.setTexture('cage-open');
-                    cage.setScale(0.16);
+                    cage.setScale(0.32);
 
                     this.showMessage('You unlock the cage. The nightingale sings one last note — then flies out the window.');
                     this.tweens.add({
@@ -281,6 +276,14 @@ class Past extends AdventureScene {
                 }
             });
 
+        // Top layer: closed-cage bars drawn over the bird so it reads as 'trapped'.
+        // Added AFTER the bird-cage so its z-index is above it.
+        if (!GameState.birdFreed) {
+            cageOverlay = this.add.image(this.w * 0.22, this.h * 0.55, 'cage-closed')
+                .setOrigin(0.5)
+                .setScale(0.44);
+        }
+
         // ---- Back button ----
         this.describe(
             this.add.text(this.w * 0.05, this.h * 0.9, '← Back to candy jar')
@@ -309,7 +312,7 @@ class Present extends AdventureScene {
         const cageTextureKey = GameState.birdFreed ? 'cage-worn-open' : 'cage-worn-closed';
         const cage = this.add.image(this.w * 0.18, this.h * 0.5, cageTextureKey)
             .setOrigin(0.5)
-            .setScale(0.16)
+            .setScale(0.32)
             .setInteractive()
             .on('pointerover', () => {
                 this.showMessage(GameState.birdFreed
