@@ -119,7 +119,7 @@ class CandyJar extends AdventureScene {
             .setDisplaySize(this.w * 0.75, this.h);
 
         // ---- Key (still an emoji — no sprite for the small brass key) ----
-        let key = this.add.text(this.w * 0.38, this.h * 0.35, '🔑 a small key')
+        let key = this.add.text(this.w * 0.38, this.h * 0.85, '🔑 a small key')
             .setFontSize(this.s * 2);
         this.describe(key, 'An old brass key. Still shiny.')
             .on('pointerdown', () => {
@@ -139,14 +139,14 @@ class CandyJar extends AdventureScene {
         // ---- Door 1 — Past ----
         const door1 = this.add.image(this.w * 0.15, this.h * 0.6, 'door')
             .setOrigin(0.5)
-            .setScale(0.16);
+            .setScale(0.64);
         this.describe(door1, 'Door 1 — something waits behind it. (The Past)')
             .on('pointerdown', () => this.gotoScene('past'));
 
         // ---- Door 2 — Present ----
         const door2 = this.add.image(this.w * 0.6, this.h * 0.6, 'door')
             .setOrigin(0.5)
-            .setScale(0.16);
+            .setScale(0.64);
         this.describe(door2, 'Door 2 — time has changed what lies beyond. (The Present)')
             .on('pointerdown', () => this.gotoScene('present'));
     }
