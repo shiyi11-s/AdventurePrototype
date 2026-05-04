@@ -1,134 +1,3 @@
-/* class Demo1 extends AdventureScene {
-    constructor() {
-        super("demo1", "First Room");
-    }
-
-    onEnter() {
-
-        let clip = this.add.text(this.w * 0.3, this.w * 0.3, "📎 paperclip")
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => this.showMessage("Metal, bent."))
-            .on('pointerdown', () => {
-                this.showMessage("No touching!");
-                this.tweens.add({
-                    targets: clip,
-                    x: '+=' + this.s,
-                    repeat: 2,
-                    yoyo: true,
-                    ease: 'Sine.inOut',
-                    duration: 100
-                });
-            });
-
-        let key = this.add.text(this.w * 0.5, this.w * 0.1, "🔑 key")
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => {
-                this.showMessage("It's a nice key.")
-            })
-            .on('pointerdown', () => {
-                this.showMessage("You pick up the key.");
-                this.gainItem('key');
-                this.tweens.add({
-                    targets: key,
-                    y: `-=${2 * this.s}`,
-                    alpha: { from: 1, to: 0 },
-                    duration: 500,
-                    onComplete: () => key.destroy()
-                });
-            })
-
-        let door = this.add.text(this.w * 0.1, this.w * 0.15, "🚪 locked door")
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => {
-                if (this.hasItem("key")) {
-                    this.showMessage("You've got the key for this door.");
-                } else {
-                    this.showMessage("It's locked. Can you find a key?");
-                }
-            })
-            .on('pointerdown', () => {
-                if (this.hasItem("key")) {
-                    this.loseItem("key");
-                    this.showMessage("*squeak*");
-                    door.setText("🚪 unlocked door");
-                    this.gotoScene('demo2');
-                }
-            })
-
-    }
-}
-
-class Demo2 extends AdventureScene {
-    constructor() {
-        super("demo2", "The second room has a long name (it truly does).");
-    }
-    onEnter() {
-        this.add.text(this.w * 0.3, this.w * 0.4, "just go back")
-            .setFontSize(this.s * 2)
-            .setInteractive()
-            .on('pointerover', () => {
-                this.showMessage("You've got no other choice, really.");
-            })
-            .on('pointerdown', () => {
-                this.gotoScene('demo1');
-            });
-
-        let finish = this.add.text(this.w * 0.6, this.w * 0.2, '(finish the game)')
-            .setInteractive()
-            .on('pointerover', () => {
-                this.showMessage('*giggles*');
-                this.tweens.add({
-                    targets: finish,
-                    x: this.s + (this.h - 2 * this.s) * Math.random(),
-                    y: this.s + (this.h - 2 * this.s) * Math.random(),
-                    ease: 'Sine.inOut',
-                    duration: 500
-                });
-            })
-            .on('pointerdown', () => this.gotoScene('outro'));
-    }
-}
-
-class Intro extends Phaser.Scene {
-    constructor() {
-        super('intro')
-    }
-    create() {
-        this.add.text(50,50, "Adventure awaits!").setFontSize(50);
-        this.add.text(50,100, "Click anywhere to begin.").setFontSize(20);
-        this.input.on('pointerdown', () => {
-            this.cameras.main.fade(1000, 0,0,0);
-            this.time.delayedCall(1000, () => this.scene.start('demo1'));
-        });
-    }
-}
-
-class Outro extends Phaser.Scene {
-    constructor() {
-        super('outro');
-    }
-    create() {
-        this.add.text(50, 50, "That's all!").setFontSize(50);
-        this.add.text(50, 100, "Click anywhere to restart.").setFontSize(20);
-        this.input.on('pointerdown', () => this.scene.start('intro'));
-    }
-}
-
-
-const game = new Phaser.Game({
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 1920,
-        height: 1080
-    },
-    scene: [Intro, Demo1, Demo2, Outro],
-    title: "Adventure Game",
-});
-*/
 // ============================================================
 // GLOBAL STATE
 // Use a plain object to share state between scenes
@@ -138,6 +7,59 @@ const GameState = {
     windowOpen: false,   // Is the window in the Past open?
     sawScore: false,     // Did the player see the musical score?
 };
+
+// ============================================================
+// PRELOAD SCENE
+// Loads every image / audio asset once, up front, so that all
+// later scenes can reference them by key without re-fetching.
+// ============================================================
+class Preload extends Phaser.Scene {
+    constructor() {
+        super('preload');
+    }
+
+    preload() {
+        // Backgrounds
+        this.load.image('bg-candyjar', 'assets/candy-jar-background.png');
+        this.load.image('bg-room',     'assets/room-background.png');
+
+        // Doors
+        this.load.image('door',        'assets/door.png');
+
+        // Windows (Past + reflected in Present)
+        this.load.image('window-closed', 'assets/closed-window.png');
+        this.load.image('window-open',   'assets/opened-window.png');
+
+        // Birdcages — Past has the fresh cage, Present has the worn one
+        this.load.image('cage-closed',      'assets/closed-birdcage.png');
+        this.load.image('cage-open',        'assets/opened-birdcage.png');
+        this.load.image('cage-with-bird',   'assets/nightingale-incage-version.png');
+        this.load.image('cage-worn-closed', 'assets/worn-out-closed-birdcage.png');
+        this.load.image('cage-worn-open',   'assets/worn-out-opened-birdcage.png');
+
+        // Nightingale flying
+        this.load.image('bird-fly',     'assets/nightingale-flyversion1.png');
+        this.load.image('bird-fly-key', 'assets/birdfly-version2.png');
+
+        // Chalk drawing in Present
+        this.load.image('chalk',        'assets/chalkpaint.png');
+        this.load.image('chalk-rained', 'assets/rained-chalkpaint.png');
+
+        // Audio for Ending 1
+        this.load.audio('barcarolle', 'assets/tchaikovsky-the-seasons-june-barcarolle.mp3');
+
+        // Simple "loading" feedback
+        const cx = this.cameras.main.width / 2;
+        const cy = this.cameras.main.height / 2;
+        this.add.text(cx, cy, 'Loading...', {
+            fontSize: '32px', color: '#888888'
+        }).setOrigin(0.5);
+    }
+
+    create() {
+        this.scene.start('intro');
+    }
+}
 
 // ============================================================
 // INTRO SCENE  (plain Phaser.Scene — no AdventureScene needed)
@@ -192,6 +114,11 @@ class CandyJar extends AdventureScene {
     }
 
     onEnter() {
+        // ---- Background fills the play area (left 75%) ----
+        this.add.image(this.w * 0.375, this.h * 0.5, 'bg-candyjar')
+            .setDisplaySize(this.w * 0.75, this.h);
+
+        // ---- Key (still an emoji — no sprite for the small brass key) ----
         let key = this.add.text(this.w * 0.38, this.h * 0.35, '🔑 a small key')
             .setFontSize(this.s * 2);
         this.describe(key, 'An old brass key. Still shiny.')
@@ -209,17 +136,19 @@ class CandyJar extends AdventureScene {
                 }
             });
 
-        // ---- Door 1 — Past ---- (left quarter of play area)
-        this.describe(
-            this.add.text(this.w * 0.12, this.h * 0.5, '🚪 Door 1\n(The Past)').setFontSize(this.s * 2),
-            'Something waits behind this door.'
-        ).on('pointerdown', () => this.gotoScene('past'));
+        // ---- Door 1 — Past ----
+        const door1 = this.add.image(this.w * 0.15, this.h * 0.6, 'door')
+            .setOrigin(0.5)
+            .setScale(0.16);
+        this.describe(door1, 'Door 1 — something waits behind it. (The Past)')
+            .on('pointerdown', () => this.gotoScene('past'));
 
-        // ---- Door 2 — Present ---- (right of play area, max 0.55 to stay clear)
-        this.describe(
-            this.add.text(this.w * 0.55, this.h * 0.5, '🚪 Door 2\n(The Present)').setFontSize(this.s * 2),
-            'Time has changed what lies beyond.'
-        ).on('pointerdown', () => this.gotoScene('present'));
+        // ---- Door 2 — Present ----
+        const door2 = this.add.image(this.w * 0.6, this.h * 0.6, 'door')
+            .setOrigin(0.5)
+            .setScale(0.16);
+        this.describe(door2, 'Door 2 — time has changed what lies beyond. (The Present)')
+            .on('pointerdown', () => this.gotoScene('present'));
     }
 }
 
@@ -232,9 +161,15 @@ class Past extends AdventureScene {
     }
 
     onEnter() {
-        let windowText = GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)';
-        let windowObj = this.add.text(this.w * 0.55, this.h * 0.25, windowText)
-            .setFontSize(this.s * 2)
+        // ---- Background ----
+        this.add.image(this.w * 0.375, this.h * 0.5, 'bg-room')
+            .setDisplaySize(this.w * 0.75, this.h);
+
+        // ---- Window (toggles open/closed) ----
+        let windowObj = this.add.image(this.w * 0.6, this.h * 0.32,
+                GameState.windowOpen ? 'window-open' : 'window-closed')
+            .setOrigin(0.5)
+            .setScale(0.18)
             .setInteractive()
             .on('pointerover', () => {
                 this.showMessage(GameState.windowOpen
@@ -243,14 +178,18 @@ class Past extends AdventureScene {
             })
             .on('pointerdown', () => {
                 GameState.windowOpen = !GameState.windowOpen;
-                windowObj.setText(GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)');
-                this.showMessage(GameState.windowOpen ? 'You open the window.' : 'You close the window.');
+                windowObj.setTexture(GameState.windowOpen ? 'window-open' : 'window-closed');
+                this.showMessage(GameState.windowOpen
+                    ? 'You open the window.'
+                    : 'You close the window.');
                 this.shake(windowObj);
             });
 
-        let cageLabel = GameState.birdFreed ? '🪺 empty birdcage' : '🪺 birdcage';
-        let cage = this.add.text(this.w * 0.18, this.h * 0.45, cageLabel)
-            .setFontSize(this.s * 2)
+        // ---- Birdcage (with nightingale visible until freed) ----
+        const cageKeyInitial = GameState.birdFreed ? 'cage-open' : 'cage-with-bird';
+        let cage = this.add.image(this.w * 0.22, this.h * 0.55, cageKeyInitial)
+            .setOrigin(0.5)
+            .setScale(GameState.birdFreed ? 0.16 : 0.22)
             .setInteractive()
             .on('pointerover', () => {
                 if (GameState.birdFreed) {
@@ -271,21 +210,24 @@ class Past extends AdventureScene {
                     }
                     this.loseItem('key');
                     GameState.birdFreed = true;
-                    cage.setText('🪺 empty birdcage');
+
+                    // Swap to the open-cage texture (and its scale)
+                    cage.setTexture('cage-open');
+                    cage.setScale(0.16);
+
                     this.showMessage('You unlock the cage. The nightingale sings one last note — then flies out the window.');
                     this.tweens.add({
                         targets: cage,
-                        alpha: 0.5,
+                        alpha: 0.6,
                         duration: 800,
                         yoyo: true,
                         repeat: 1
                     });
 
                     // ---- Bird flies out of cage, through the window ----
-                    // Window is at (this.w * 0.55, this.h * 0.25)
-                    const bird = this.add.text(cage.x + this.s * 2, cage.y, '🐦')
-                        .setFontSize(this.s * 3)
-                        .setOrigin(0.5);
+                    const bird = this.add.image(cage.x + this.s * 3, cage.y, 'bird-fly')
+                        .setOrigin(0.5)
+                        .setScale(0.11);
                     // Step 1: lift out of the cage
                     this.tweens.add({
                         targets: bird,
@@ -296,8 +238,8 @@ class Past extends AdventureScene {
                             // Step 2: fly across to the window
                             this.tweens.add({
                                 targets: bird,
-                                x: this.w * 0.58,
-                                y: this.h * 0.27,
+                                x: this.w * 0.6,
+                                y: this.h * 0.32,
                                 duration: 800,
                                 ease: 'Sine.inOut',
                                 onComplete: () => {
@@ -322,7 +264,9 @@ class Past extends AdventureScene {
 
         // ---- Back button ----
         this.describe(
-            this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar').setFontSize(this.s * 1.5),
+            this.add.text(this.w * 0.05, this.h * 0.9, '← Back to candy jar')
+                .setFontSize(this.s * 1.5)
+                .setColor('#ffffff'),
             'Return to the candy jar.'
         ).on('pointerdown', () => this.gotoScene('candyjar'));
     }
@@ -337,28 +281,36 @@ class Present extends AdventureScene {
     }
 
     onEnter() {
-        let cageText = GameState.birdFreed
-            ? '🪺 open birdcage'
-            : '💀 birdcage (with bones)';
+        // ---- Background ----
+        this.add.image(this.w * 0.375, this.h * 0.5, 'bg-room')
+            .setDisplaySize(this.w * 0.75, this.h)
+            .setTint(0x9999aa); // wash the room a touch cooler / older
 
-        this.add.text(this.w * 0.12, this.h * 0.35, cageText)
-            .setFontSize(this.s * 2)
+        // ---- Worn birdcage (state-dependent) ----
+        const cageTextureKey = GameState.birdFreed ? 'cage-worn-open' : 'cage-worn-closed';
+        const cage = this.add.image(this.w * 0.18, this.h * 0.5, cageTextureKey)
+            .setOrigin(0.5)
+            .setScale(0.16)
             .setInteractive()
             .on('pointerover', () => {
                 this.showMessage(GameState.birdFreed
                     ? 'The cage door is still open. The bird is long gone.'
                     : 'Small bones rattle inside. The nightingale never left.');
             })
-            .on('pointerdown', () => {
-                this.shake(this.children.list.find(c => c.text && c.text.includes('cage')));
-            });
+            .on('pointerdown', () => this.shake(cage));
 
-        let chalkText = GameState.windowOpen
-            ? '🎵 (blurry musical score)'
-            : '🎵 musical score in chalk';
+        // If the bird never flew, overlay a small bones glyph so it's clear
+        if (!GameState.birdFreed) {
+            this.add.text(this.w * 0.18, this.h * 0.55, '💀', {
+                fontSize: `${this.s * 2.4}px`
+            }).setOrigin(0.5);
+        }
 
-        let chalk = this.add.text(this.w * 0.38, this.h * 0.6, chalkText)
-            .setFontSize(this.s * 2)
+        // ---- Chalk drawing (clear vs rained-on) ----
+        const chalkTextureKey = GameState.windowOpen ? 'chalk-rained' : 'chalk';
+        let chalk = this.add.image(this.w * 0.4, this.h * 0.7, chalkTextureKey)
+            .setOrigin(0.5)
+            .setScale(0.18)
             .setInteractive()
             .on('pointerover', () => {
                 if (GameState.windowOpen) {
@@ -376,29 +328,39 @@ class Present extends AdventureScene {
                     this.showMessage('You study the score carefully. The melody stays with you.');
                     this.tweens.add({
                         targets: chalk,
-                        scaleX: 1.1,
-                        scaleY: 1.1,
+                        scaleX: chalk.scaleX * 1.1,
+                        scaleY: chalk.scaleY * 1.1,
                         duration: 300,
                         yoyo: true
                     });
                 }
             });
-        this.add.text(this.w * 0.55, this.h * 0.25,
-            GameState.windowOpen ? '🪟 window (open)' : '🪟 window (closed)')
-            .setFontSize(this.s * 2)
+
+        // ---- Read-only window reflection (shows what state Past left it in) ----
+        const reflectedWindow = this.add.image(this.w * 0.6, this.h * 0.32,
+                GameState.windowOpen ? 'window-open' : 'window-closed')
+            .setOrigin(0.5)
+            .setScale(0.16)
+            .setAlpha(0.85)
             .setInteractive()
             .on('pointerover', () => {
                 this.showMessage(GameState.windowOpen
                     ? 'Rain has gotten in. The chalk drawing is ruined.'
                     : 'Closed. The chalk drawing is preserved.');
             });
-        this.describe(
-            this.add.text(this.w * 0.55, this.h * 0.65, '🚪 Door 3\n(The Future)').setFontSize(this.s * 2),
-            'Where does this lead?'
-        ).on('pointerdown', () => this.gotoScene('future'));
 
+        // ---- Door 3 — Future ----
+        const door3 = this.add.image(this.w * 0.6, this.h * 0.7, 'door')
+            .setOrigin(0.5)
+            .setScale(0.15);
+        this.describe(door3, 'Door 3 — where does this lead? (The Future)')
+            .on('pointerdown', () => this.gotoScene('future'));
+
+        // ---- Back button ----
         this.describe(
-            this.add.text(this.w * 0.05, this.h * 0.85, '← Back to candy jar').setFontSize(this.s * 1.5),
+            this.add.text(this.w * 0.05, this.h * 0.9, '← Back to candy jar')
+                .setFontSize(this.s * 1.5)
+                .setColor('#ffffff'),
             'Return to the candy jar.'
         ).on('pointerdown', () => this.gotoScene('candyjar'));
     }
@@ -413,11 +375,18 @@ class Future extends AdventureScene {
     }
 
     onEnter() {
+        // ---- Background ----
+        this.add.image(this.w * 0.375, this.h * 0.5, 'bg-room')
+            .setDisplaySize(this.w * 0.75, this.h)
+            .setTint(0xc8c8e0); // cooler still — far future
+
         // ---- Nightingale brings silver key (only if freed) ----
         if (GameState.birdFreed) {
-            // Key is hidden at first — the bird drops it.
-            let silverKey = this.add.text(this.w * 0.18, this.h * 0.3, '🗝️ silver key\n(left by the nightingale)')
-                .setFontSize(this.s * 2)
+            // Silver key emoji — hidden until the bird drops it.
+            let silverKey = this.add.text(this.w * 0.2, this.h * 0.4,
+                    '🗝️ silver key\n(left by the nightingale)')
+                .setFontSize(this.s * 1.6)
+                .setOrigin(0.5)
                 .setAlpha(0);
             this.describe(silverKey, 'The nightingale remembered you.')
                 .on('pointerdown', () => {
@@ -435,28 +404,29 @@ class Future extends AdventureScene {
                     }
                 });
 
-            // ---- Bird flies in carrying the key, drops it, flies away ----
-            const bird = this.add.text(this.w + this.s * 4, this.h * 0.05, '🐦🗝️')
-                .setFontSize(this.s * 3)
-                .setOrigin(0.5);
+            // Bird sprite carrying the key — flies in, drops it, flies away.
+            const bird = this.add.image(this.w + this.s * 5, this.h * 0.1, 'bird-fly-key')
+                .setOrigin(0.5)
+                .setScale(0.13);
+
             // Step 1: bird flies in to a hover point just above the drop spot
             this.tweens.add({
                 targets: bird,
-                x: this.w * 0.18,
-                y: this.h * 0.3 - this.s * 3,
+                x: this.w * 0.2,
+                y: this.h * 0.4 - this.s * 4,
                 duration: 1300,
                 ease: 'Sine.inOut',
                 onComplete: () => {
-                    // Step 2: drop the key — bird becomes empty-beaked, key falls into place
-                    bird.setText('🐦');
+                    // Step 2: drop the key — switch to bare-bird sprite, key falls into place
+                    bird.setTexture('bird-fly');
                     this.tweens.add({
                         targets: silverKey,
                         alpha: { from: 0, to: 1 },
-                        y: { from: this.h * 0.3 - this.s * 2, to: this.h * 0.3 },
+                        y: { from: this.h * 0.4 - this.s * 2, to: this.h * 0.4 },
                         duration: 500,
                         ease: 'Bounce.out'
                     });
-                    // Step 3: little hover, then bird flies off out the top-left
+                    // Step 3: bird flies off out the top-left
                     this.time.delayedCall(550, () => {
                         this.tweens.add({
                             targets: bird,
@@ -471,11 +441,14 @@ class Future extends AdventureScene {
                 }
             });
         } else {
-            this.add.text(this.w * 0.18, this.h * 0.3, '(no one came)')
-                .setFontSize(this.s * 1.5)
-                .setAlpha(0.4);
+            this.add.text(this.w * 0.2, this.h * 0.4, '(no one came)', {
+                fontSize: `${this.s * 1.5}px`,
+                color: '#888888'
+            }).setOrigin(0.5).setAlpha(0.6);
         }
-        let box = this.add.text(this.w * 0.45, this.h * 0.45, '📦 locked box')
+
+        // ---- Locked box (no sprite — emoji) ----
+        let box = this.add.text(this.w * 0.45, this.h * 0.55, '📦 locked box')
             .setFontSize(this.s * 2)
             .setInteractive()
             .on('pointerover', () => {
@@ -498,7 +471,7 @@ class Future extends AdventureScene {
 
                     // Reveal flute
                     this.time.delayedCall(600, () => {
-                        this.add.text(this.w * 0.45, this.h * 0.58, '🎶 flute')
+                        this.add.text(this.w * 0.45, this.h * 0.65, '🎶 flute')
                             .setFontSize(this.s * 2)
                             .setInteractive()
                             .on('pointerover', () => {
@@ -518,8 +491,11 @@ class Future extends AdventureScene {
                     this.shake(box);
                 }
             });
-        let door4 = this.add.text(this.w * 0.55, this.h * 0.72, '🚪 Door 4\n(The Way Out)')
-            .setFontSize(this.s * 2)
+
+        // ---- Door 4 — The way out ----
+        const door4 = this.add.image(this.w * 0.6, this.h * 0.72, 'door')
+            .setOrigin(0.5)
+            .setScale(0.15)
             .setInteractive()
             .on('pointerover', () => {
                 if (this.hasItem('flute') && GameState.sawScore) {
@@ -530,14 +506,15 @@ class Future extends AdventureScene {
             })
             .on('pointerdown', () => {
                 if (this.hasItem('flute') && GameState.sawScore) {
-                    this.showMessage('Play the melody? (click again to play, or go through the door directly below)');
-                    door4.destroy();
-                    this.add.text(this.w * 0.38, this.h * 0.78, '🎵 Play the melody')
+                    this.showMessage('Play the melody, or just leave?');
+                    door4.disableInteractive();
+                    door4.setAlpha(0.4);
+                    this.add.text(this.w * 0.4, this.h * 0.84, '🎵 Play the melody')
                         .setFontSize(this.s * 1.8)
                         .setInteractive()
                         .on('pointerdown', () => this.gotoScene('ending1'));
 
-                    this.add.text(this.w * 0.38, this.h * 0.88, '🚶 Just leave')
+                    this.add.text(this.w * 0.4, this.h * 0.91, '🚶 Just leave')
                         .setFontSize(this.s * 1.8)
                         .setInteractive()
                         .on('pointerdown', () => this.gotoScene('ending2'));
@@ -548,7 +525,9 @@ class Future extends AdventureScene {
 
         // ---- Back button ----
         this.describe(
-            this.add.text(this.w * 0.05, this.h * 0.85, '← Back').setFontSize(this.s * 1.5),
+            this.add.text(this.w * 0.05, this.h * 0.9, '← Back')
+                .setFontSize(this.s * 1.5)
+                .setColor('#ffffff'),
             'Go back to the present.'
         ).on('pointerdown', () => this.gotoScene('present'));
     }
@@ -556,6 +535,7 @@ class Future extends AdventureScene {
 
 // ============================================================
 // ENDING 1  (plain Phaser.Scene)
+// Plays Tchaikovsky's June: Barcarolle as background music.
 // ============================================================
 class Ending1 extends Phaser.Scene {
     constructor() {
@@ -567,6 +547,11 @@ class Ending1 extends Phaser.Scene {
 
         this.cameras.main.setBackgroundColor('#0a0a1a');
 
+        // ---- BGM ----
+        this.bgm = this.sound.add('barcarolle', { volume: 0.6, loop: true });
+        this.bgm.play();
+
+        // ---- Title ----
         this.add.text(cx, 80, '🎵 Ending 1: The Nightingale\'s Song', {
             fontSize: '38px', color: '#e8d5a3'
         }).setOrigin(0.5);
@@ -603,7 +588,19 @@ class Ending1 extends Phaser.Scene {
             fontSize: '20px', color: '#555555'
         }).setOrigin(0.5);
 
-        this.input.on('pointerdown', () => this.scene.start('intro'));
+        this.input.on('pointerdown', () => {
+            // Fade music out, then restart
+            if (this.bgm) {
+                this.tweens.add({
+                    targets: this.bgm,
+                    volume: 0,
+                    duration: 800,
+                    onComplete: () => this.bgm.stop()
+                });
+            }
+            this.cameras.main.fade(900, 0, 0, 0);
+            this.time.delayedCall(900, () => this.scene.start('intro'));
+        });
     }
 }
 
@@ -668,7 +665,7 @@ const game = new Phaser.Game({
         width: 1920,
         height: 1080
     },
-    scene: [Intro, CandyJar, Past, Present, Future, Ending1, Ending2],
+    scene: [Preload, Intro, CandyJar, Past, Present, Future, Ending1, Ending2],
     title: 'The Candy Jar',
     backgroundColor: '#1a1a1a'
 });
