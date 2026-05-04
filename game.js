@@ -325,7 +325,7 @@ class Present extends AdventureScene {
 
         // ---- Chalk drawing (clear vs rained-on) ----
         const chalkTextureKey = GameState.windowOpen ? 'chalk-rained' : 'chalk';
-        let chalk = this.add.image(this.w * 0.8, this.h * 0.9, chalkTextureKey)
+        let chalk = this.add.image(this.w * 0.4, this.h * 0.9, chalkTextureKey)
             .setOrigin(0.5)
             .setScale(0.18)
             .setInteractive()
