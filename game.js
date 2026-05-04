@@ -193,7 +193,7 @@ class Past extends AdventureScene {
         const cageKeyInitial = GameState.birdFreed ? 'cage-open' : 'cage-with-bird';
         let cage = this.add.image(this.w * 0.22, this.h * 0.55, cageKeyInitial)
             .setOrigin(0.5)
-            .setScale(GameState.birdFreed ? 0.32 : 0.44)
+            .setScale(GameState.birdFreed ? 0.32 : 0.22)
             .setInteractive()
             .on('pointerover', () => {
                 if (GameState.birdFreed) {
