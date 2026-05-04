@@ -202,7 +202,7 @@ class Past extends AdventureScene {
         const cageY = this.h * 0.55;
         let cage = this.add.image(this.w * 0.22, cageY, cageKeyInitial)
             .setOrigin(0.5)
-            .setScale(GameState.birdFreed ? 0.224 : 0.154)
+            .setScale(GameState.birdFreed ? 0.308 : 0.154)
             .setInteractive()
             .on('pointerover', () => {
                 if (GameState.birdFreed) {
@@ -236,7 +236,7 @@ class Past extends AdventureScene {
 
                     // Swap to the open-cage texture (and its scale)
                     cage.setTexture('cage-open');
-                    cage.setScale(0.224);
+                    cage.setScale(0.308);
 
                     this.showMessage('You unlock the cage. The nightingale sings one last note — then flies out the window.');
 
@@ -307,7 +307,7 @@ class Present extends AdventureScene {
         const cageTextureKey = GameState.birdFreed ? 'cage-worn-open' : 'cage-worn-closed';
         const cage = this.add.image(this.w * 0.18, this.h * 0.5, cageTextureKey)
             .setOrigin(0.5)
-            .setScale(0.224)
+            .setScale(0.308)
             .setInteractive()
             .on('pointerover', () => {
                 this.showMessage(GameState.birdFreed
