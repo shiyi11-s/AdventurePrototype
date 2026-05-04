@@ -186,6 +186,15 @@ class Past extends AdventureScene {
             });
 
         // ---- Birdcage (with nightingale visible until freed) ----
+        // Closed-cage overlay drawn on top of the bird so it looks caged.
+        // Created BEFORE the bird-cage so the closure inside cage.pointerdown can fade it.
+        let cageOverlay = null;
+        if (!GameState.birdFreed) {
+            cageOverlay = this.add.image(this.w * 0.22, this.h * 0.55, 'cage-closed')
+                .setOrigin(0.5)
+                .setScale(0.22);
+        }
+
         const cageKeyInitial = GameState.birdFreed ? 'cage-open' : 'cage-with-bird';
         let cage = this.add.image(this.w * 0.22, this.h * 0.55, cageKeyInitial)
             .setOrigin(0.5)
@@ -210,6 +219,16 @@ class Past extends AdventureScene {
                     }
                     this.loseItem('key');
                     GameState.birdFreed = true;
+
+                    // Fade out the closed-cage overlay so the bird is visible escaping
+                    if (cageOverlay) {
+                        this.tweens.add({
+                            targets: cageOverlay,
+                            alpha: 0,
+                            duration: 600,
+                            onComplete: () => cageOverlay.destroy()
+                        });
+                    }
 
                     // Swap to the open-cage texture (and its scale)
                     cage.setTexture('cage-open');
