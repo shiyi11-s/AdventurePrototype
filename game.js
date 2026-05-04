@@ -186,12 +186,21 @@ class Past extends AdventureScene {
             });
 
         // ---- Birdcage (with nightingale visible until freed) ----
-        // Forward-declared so the closure inside cage.pointerdown can fade it later.
+        // Bottom layer: closed-cage frame, drawn first so the bird sits
+        // visibly in front of it (cage bars / dome behind, bird in front).
         let cageOverlay = null;
+        if (!GameState.birdFreed) {
+            cageOverlay = this.add.image(this.w * 0.22, this.h * 0.55, 'cage-closed')
+                .setOrigin(0.5)
+                .setScale(0.308);
+        }
 
-        // Bottom layer: bird-in-cage (or open cage after the bird leaves).
+        // Top layer: bird-in-cage (or the open cage after the bird leaves).
+        // Bird y is offset down by ~one body length so it sits in the lower
+        // interior of the cage frame instead of stacked on its midline.
         const cageKeyInitial = GameState.birdFreed ? 'cage-open' : 'cage-with-bird';
-        let cage = this.add.image(this.w * 0.22, this.h * 0.55, cageKeyInitial)
+        const cageY = this.h * 0.55;
+        let cage = this.add.image(this.w * 0.22, cageY, cageKeyInitial)
             .setOrigin(0.5)
             .setScale(GameState.birdFreed ? 0.224 : 0.154)
             .setInteractive()
@@ -269,13 +278,6 @@ class Past extends AdventureScene {
                 }
             });
 
-        // Top layer: closed-cage bars drawn over the bird so it reads as 'trapped'.
-        // Added AFTER the bird-cage so its z-index is above it.
-        if (!GameState.birdFreed) {
-            cageOverlay = this.add.image(this.w * 0.22, this.h * 0.55, 'cage-closed')
-                .setOrigin(0.5)
-                .setScale(0.308);
-        }
 
         // ---- Back button ----
         this.describe(
@@ -323,7 +325,7 @@ class Present extends AdventureScene {
 
         // ---- Chalk drawing (clear vs rained-on) ----
         const chalkTextureKey = GameState.windowOpen ? 'chalk-rained' : 'chalk';
-        let chalk = this.add.image(this.w * 0.4, this.h * 0.7, chalkTextureKey)
+        let chalk = this.add.image(this.w * 0.6, this.h * 0.9, chalkTextureKey)
             .setOrigin(0.5)
             .setScale(0.18)
             .setInteractive()
